@@ -129,14 +129,23 @@ export function DietPlannerClient({ initialPlan }: { initialPlan?: DietPlan }) {
                   Target: {plan.target_calories} kcal/day · {plan.preference}
                 </p>
               </div>
-              <button
-                onClick={generatePlan}
-                disabled={loading}
-                className="bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                {loading ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
-                Regenerate
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPlan(undefined)}
+                  disabled={loading}
+                  className="bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 px-4 rounded-lg flex items-center transition-colors"
+                >
+                  New Plan
+                </button>
+                <button
+                  onClick={generatePlan}
+                  disabled={loading}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  {loading ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+                  Regenerate
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
