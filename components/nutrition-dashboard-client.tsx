@@ -207,11 +207,19 @@ export function NutritionDashboardClient({ orders }: { orders: ProcessedOrder[] 
       </header>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-3 bg-primary/10 rounded-xl">
-            <Activity className="text-primary" size={28} />
+        <div className="flex items-center gap-3 mb-8 justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-xl">
+              <Activity className="text-primary" size={28} />
+            </div>
+            <h1 className="text-3xl font-bold text-foreground">Monthly Calorie Dashboard</h1>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Monthly Calorie Dashboard</h1>
+          <Link
+            href="/account/planner"
+            className="bg-accent hover:bg-accent/90 text-accent-foreground font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors text-sm"
+          >
+            Plan My Week
+          </Link>
         </div>
 
         {monthOrders.length === 0 ? (
