@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, MapPin, User } from 'lucide-react'
+import { Search, MapPin, User, Wallet } from 'lucide-react'
 import { RestaurantCard } from '@/components/restaurant-card'
 import { SteamAnimation } from '@/components/steam-animation'
 import { cuisineCategories } from '@/lib/restaurants'
@@ -105,7 +105,10 @@ export function HomeClient({
                   </span>
                 )}
               </Link>
-              <Link href="/account" className="p-2 hover:bg-secondary rounded-lg transition-colors">
+              <Link href="/budget-planner" className="p-2 hover:bg-secondary rounded-lg transition-colors" title="Budget Planner">
+                <Wallet size={20} className="text-foreground" />
+              </Link>
+              <Link href="/account" className="p-2 hover:bg-secondary rounded-lg transition-colors" title="My Account">
                 <User size={20} className="text-foreground" />
               </Link>
             </div>

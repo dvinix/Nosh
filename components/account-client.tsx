@@ -133,6 +133,13 @@ export function AccountClient({ orders, user }: AccountClientProps) {
               >
                 Nutrition Dashboard
               </Link>
+              
+              <Link
+                href="/account/analytics"
+                className="flex items-center w-full text-left px-4 py-3 rounded-lg font-medium hover:bg-secondary text-foreground transition-colors"
+              >
+                Order Analytics
+              </Link>
             </nav>
           </aside>
 
