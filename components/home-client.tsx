@@ -26,11 +26,13 @@ import { Recommendation } from '@/lib/recommendations'
 export function HomeClient({ 
   initialRestaurants, 
   recommendations = [], 
-  isPersonalized = false 
+  isPersonalized = false,
+  trendingRestaurantId
 }: { 
   initialRestaurants: Restaurant[],
   recommendations?: Recommendation[],
-  isPersonalized?: boolean
+  isPersonalized?: boolean,
+  trendingRestaurantId?: string | null
 }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCuisine, setSelectedCuisine] = useState('All')
@@ -54,7 +56,8 @@ export function HomeClient({
   }, [searchQuery, selectedCuisine, initialRestaurants])
 
   const featuredRestaurant = filteredRestaurants.find((r) => r.featured)
-  const otherRestaurants = filteredRestaurants.filter((r) => !r.featured)
+  const trendingRestaurant = trendingRestaurantId ? filteredRestaurants.find((r) => r.id === trendingRestaurantId) : null
+  const otherRestaurants = filteredRestaurants.filter((r) => !r.featured && r.id !== trendingRestaurant?.id)
 
   // Map to match the existing component props
   const mapToProp = (r: Restaurant) => ({
@@ -172,6 +175,21 @@ export function HomeClient({
                   metrics={rec.metrics}
                 />
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Trending Section */}
+        {trendingRestaurant && selectedCuisine === 'All' && searchQuery === '' && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              Trending this week
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <RestaurantCard
+                restaurant={mapToProp(trendingRestaurant)}
+                reasonTag="Most ordered this week"
+              />
             </div>
           </section>
         )}

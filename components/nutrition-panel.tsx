@@ -282,5 +282,3 @@ export function NutritionPanel({ dishId, dishName, nutrition, quantity = 1, comp
     </div>
   )
 }
-
-}

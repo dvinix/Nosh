@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { MenuItem } from '@/lib/menu'
-import { Plus, Minus, ChevronDown, ChevronUp, Flame } from 'lucide-react'
+import { Plus, Minus, ChevronDown, ChevronUp, Flame, Info } from 'lucide-react'
 import { NutritionPanel } from '@/components/nutrition-panel'
+import { GoesWellWith } from '@/components/goes-well-with'
 
 interface MenuItemComponentProps {
   item: MenuItem
@@ -61,14 +62,14 @@ export function MenuItemComponent({
                 ))}
               </div>
             )}
-            {/* Calorie quick peek */}
-            {hasNutrition && !nutritionOpen && (
+            {/* Details quick peek */}
+            {!nutritionOpen && (
               <button
                 onClick={() => setNutritionOpen(true)}
                 className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-accent transition-colors"
               >
-                <Flame size={11} className="text-orange-400" />
-                <span className="font-mono font-medium">{item.calories} kcal</span>
+                {hasNutrition && <Flame size={11} className="text-orange-400" />}
+                <span className="font-medium">View details {hasNutrition && `· ${item.calories} kcal`}</span>
                 <ChevronDown size={11} />
               </button>
             )}
@@ -110,31 +111,32 @@ export function MenuItemComponent({
         </div>
       </div>
 
-      {/* Expandable Nutrition Dashboard */}
-      {hasNutrition && (
-        <>
-          {nutritionOpen ? (
-            <div className="px-4 pb-4">
-              <NutritionPanel
-                dishId={item.id}
-                dishName={item.name}
-                nutrition={{
-                  calories: item.calories!,
-                  protein_g: item.protein_g!,
-                  carbs_g: item.carbs_g!,
-                  fat_g: item.fat_g!,
-                }}
-                quantity={effectiveQty}
-              />
-              <button
-                onClick={() => setNutritionOpen(false)}
-                className="mt-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-1"
-              >
-                <ChevronUp size={12} /> Hide nutrition
-              </button>
-            </div>
-          ) : null}
-        </>
+      {/* Expandable Details & Nutrition Dashboard */}
+      {nutritionOpen && (
+        <div className="px-4 pb-4">
+          {hasNutrition && (
+            <NutritionPanel
+              dishId={item.id}
+              dishName={item.name}
+              nutrition={{
+                calories: item.calories!,
+                protein_g: item.protein_g!,
+                carbs_g: item.carbs_g!,
+                fat_g: item.fat_g!,
+              }}
+              quantity={effectiveQty}
+            />
+          )}
+          
+          <GoesWellWith dishId={item.id} />
+          
+          <button
+            onClick={() => setNutritionOpen(false)}
+            className="mt-2 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-1"
+          >
+            <ChevronUp size={12} /> Hide details
+          </button>
+        </div>
       )}
     </div>
   )

@@ -126,6 +126,13 @@ export function AccountClient({ orders, user }: AccountClientProps) {
                   {item.label}
                 </button>
               ))}
+              
+              <Link
+                href="/account/nutrition"
+                className="flex items-center w-full text-left px-4 py-3 rounded-lg font-medium hover:bg-secondary text-foreground transition-colors"
+              >
+                Nutrition Dashboard
+              </Link>
             </nav>
           </aside>
 

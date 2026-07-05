@@ -2,6 +2,7 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { CartProvider } from '@/lib/cart-context'
+import { ChatPanel } from '@/components/chat-panel'
 
 export const metadata: Metadata = {
   title: 'Nosh - Food Delivery',
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body className="antialiased font-sans">
         <CartProvider>
           {children}
+          <ChatPanel />
           {process.env.NODE_ENV === 'production' && <Analytics />}
         </CartProvider>
       </body>

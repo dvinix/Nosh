@@ -168,3 +168,76 @@ export async function getRecommendations(
     isPersonalized
   }
 }
+
+export async function getTrending(supabase: SupabaseClient) {
+  // Trending this week
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('items, restaurant_id')
+    .gte('created_at', sevenDaysAgo.toISOString())
+    
+  if (!orders || orders.length === 0) return { topDishId: null, topRestaurantId: null }
+  
+  const dishCounts: Record<string, number> = {}
+  const restaurantCounts: Record<string, number> = {}
+  
+  orders.forEach(order => {
+    restaurantCounts[order.restaurant_id] = (restaurantCounts[order.restaurant_id] || 0) + 1
+    const items = order.items as any[]
+    if (Array.isArray(items)) {
+      items.forEach(ci => {
+        if (ci.item && ci.item.id) {
+          dishCounts[ci.item.id] = (dishCounts[ci.item.id] || 0) + (ci.quantity || 1)
+        }
+      })
+    }
+  })
+  
+  const topDishId = Object.entries(dishCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+  const topRestaurantId = Object.entries(restaurantCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+  
+  return { topDishId, topRestaurantId }
+}
+
+export async function getFrequentlyOrderedTogether(supabase: SupabaseClient, dishId: string) {
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('items')
+    .order('created_at', { ascending: false })
+    .limit(200)
+    
+  if (!orders) return []
+  
+  const coOccurrenceCounts: Record<string, number> = {}
+  
+  orders.forEach(order => {
+    const items = order.items as any[]
+    if (!Array.isArray(items)) return
+    
+    const hasDish = items.some(ci => ci.item && ci.item.id === dishId)
+    if (hasDish) {
+      items.forEach(ci => {
+        if (ci.item && ci.item.id && ci.item.id !== dishId) {
+          coOccurrenceCounts[ci.item.id] = (coOccurrenceCounts[ci.item.id] || 0) + 1
+        }
+      })
+    }
+  })
+  
+  const topIds = Object.entries(coOccurrenceCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(entry => entry[0])
+    
+  if (topIds.length === 0) return []
+  
+  const { data: dishes } = await supabase
+    .from('dishes')
+    .select('*, calories, protein_g, carbs_g, fat_g')
+    .in('id', topIds)
+    
+  return dishes || []
+}
