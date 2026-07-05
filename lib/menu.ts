@@ -6,6 +6,10 @@ export interface MenuItem {
   image: string
   category: string
   dietary?: string[]
+  calories?: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
 }
 
 export interface MenuCategory {

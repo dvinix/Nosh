@@ -37,7 +37,7 @@ export default async function RestaurantDetails({ params }: { params: { id: stri
   // Fetch dishes
   const { data: dishes, error: dishesError } = await supabase
     .from('dishes')
-    .select('*')
+    .select('*, calories, protein_g, carbs_g, fat_g')
     .eq('restaurant_id', restaurantId)
 
   if (dishesError) {

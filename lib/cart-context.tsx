@@ -20,6 +20,11 @@ export interface MenuItem {
   vegetarian?: boolean
   spicy?: boolean
   popular?: boolean
+  category?: string
+  calories?: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
 }
 
 export interface CartItem {
@@ -56,13 +61,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
 
   const fetchCartItems = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
     const { data, error } = await supabase
       .from('cart_items')
-      .select('id, quantity, restaurant_id, dishes(id, name, description, price, image_url, is_veg), restaurants(name)')
-      .eq('user_id', session.user.id)
+      .select('id, quantity, restaurant_id, dishes(id, name, description, price, image_url, is_veg, category), restaurants(name)')
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Error fetching cart:', error)
@@ -86,6 +91,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             price: Number(row.dishes.price),
             image: row.dishes.image_url,
             vegetarian: row.dishes.is_veg,
+            category: row.dishes.category,
           },
         }
       })
@@ -109,12 +115,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [fetchCartItems, supabase])
 
   const requireAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       router.push('/login')
       return null
     }
-    return session.user
+    return user
   }
 
   const handleConfirmReplace = async () => {

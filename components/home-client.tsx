@@ -21,7 +21,17 @@ export interface Restaurant {
   featured?: boolean
 }
 
-export function HomeClient({ initialRestaurants }: { initialRestaurants: Restaurant[] }) {
+import { Recommendation } from '@/lib/recommendations'
+
+export function HomeClient({ 
+  initialRestaurants, 
+  recommendations = [], 
+  isPersonalized = false 
+}: { 
+  initialRestaurants: Restaurant[],
+  recommendations?: Recommendation[],
+  isPersonalized?: boolean
+}) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCuisine, setSelectedCuisine] = useState('All')
   const { cartCount, cartRestaurantId } = useCart()
@@ -80,14 +90,18 @@ export function HomeClient({ initialRestaurants }: { initialRestaurants: Restaur
               <button className="relative p-2 hover:bg-secondary rounded-lg transition-colors">
                 <MapPin size={20} className="text-foreground" />
               </button>
-              {cartCount > 0 && cartRestaurantId && (
-                <Link href={`/restaurant/${cartRestaurantId}/cart`} className="relative p-2 hover:bg-secondary rounded-lg transition-colors">
-                  <ShoppingCart size={20} className="text-foreground" />
+              <Link
+                href={cartCount > 0 && cartRestaurantId ? `/restaurant/${cartRestaurantId}/cart` : '/'}
+                className="relative p-2 hover:bg-secondary rounded-lg transition-colors"
+                title={cartCount > 0 ? `${cartCount} items in cart` : 'Cart is empty'}
+              >
+                <ShoppingCart size={20} className="text-foreground" />
+                {cartCount > 0 && (
                   <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
                     {cartCount}
                   </span>
-                </Link>
-              )}
+                )}
+              </Link>
               <Link href="/account" className="p-2 hover:bg-secondary rounded-lg transition-colors">
                 <User size={20} className="text-foreground" />
               </Link>
@@ -139,6 +153,25 @@ export function HomeClient({ initialRestaurants }: { initialRestaurants: Restaur
                 restaurant={mapToProp(featuredRestaurant)}
                 featured={true}
               />
+            </div>
+          </section>
+        )}
+
+        {/* Recommended Section */}
+        {recommendations.length > 0 && selectedCuisine === 'All' && searchQuery === '' && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-foreground mb-4">
+              {isPersonalized ? 'Recommended for you' : 'Popular right now'}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.map((rec) => (
+                <RestaurantCard
+                  key={rec.restaurant.id}
+                  restaurant={mapToProp(rec.restaurant)}
+                  reasonTag={rec.reason}
+                  metrics={rec.metrics}
+                />
+              ))}
             </div>
           </section>
         )}

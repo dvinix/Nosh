@@ -24,6 +24,10 @@ export interface Dish {
   image_url: string
   is_veg: boolean
   category: string
+  calories?: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
 }
 
 export function RestaurantClient({ restaurant, dishes }: { restaurant: Restaurant, dishes: Dish[] }) {
@@ -66,19 +70,25 @@ export function RestaurantClient({ restaurant, dishes }: { restaurant: Restauran
             <ArrowLeft size={20} />
             <span className="font-medium">Back</span>
           </Link>
-          {cartCount > 0 && (
-            <Link
-              href={`/restaurant/${cartRestaurantId}/cart`}
-              className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-              title={`Ordering from ${cartRestaurantName || 'another restaurant'}`}
-            >
-              <ShoppingCart size={20} />
+          <Link
+            href={cartRestaurantId ? `/restaurant/${cartRestaurantId}/cart` : `/restaurant/${restaurant.id}/cart`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              cartCount > 0
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-secondary text-foreground hover:bg-border'
+            }`}
+            title={cartCount > 0 ? `Ordering from ${cartRestaurantName || 'another restaurant'}` : 'Cart is empty'}
+          >
+            <ShoppingCart size={20} />
+            {cartCount > 0 ? (
               <div className="flex flex-col text-xs leading-tight">
                 <span className="font-semibold text-sm">{cartCount} items · ${cartTotal.toFixed(2)}</span>
                 <span className="opacity-80">From: {cartRestaurantName}</span>
               </div>
-            </Link>
-          )}
+            ) : (
+              <span className="text-sm font-medium">Cart</span>
+            )}
+          </Link>
         </div>
       </header>
 
@@ -176,9 +186,12 @@ export function RestaurantClient({ restaurant, dishes }: { restaurant: Restauran
                           description: dish.description || '',
                           price: Number(dish.price),
                           image: dish.image_url || '',
-                          vegetarian: dish.is_veg || false,
-                          spicy: false,
-                          popular: false,
+                          dietary: dish.is_veg ? ['Vegetarian'] : [],
+                          category: dish.category,
+                          calories: dish.calories,
+                          protein_g: dish.protein_g,
+                          carbs_g: dish.carbs_g,
+                          fat_g: dish.fat_g,
                         }}
                         cartQuantity={cartItem?.quantity || 0}
                         onAddToCart={(item, quantity) => addToCart(item, quantity, restaurant.id)}
@@ -194,21 +207,27 @@ export function RestaurantClient({ restaurant, dishes }: { restaurant: Restauran
       </div>
 
       {/* Floating Cart Button (Mobile) */}
-      {cartCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-card border-t border-border p-4 z-50">
-          <Link
-            href={`/restaurant/${cartRestaurantId}/cart`}
-            className="w-full flex items-center justify-between bg-primary text-primary-foreground px-4 py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold"
-          >
-            <ShoppingCart size={20} />
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-card border-t border-border p-4 z-50">
+        <Link
+          href={cartRestaurantId ? `/restaurant/${cartRestaurantId}/cart` : `/restaurant/${restaurant.id}/cart`}
+          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors font-semibold ${
+            cartCount > 0
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'bg-secondary text-foreground hover:bg-border'
+          }`}
+        >
+          <ShoppingCart size={20} />
+          {cartCount > 0 ? (
             <div className="flex flex-col items-center">
               <span>View Cart ({cartCount})</span>
               <span className="text-xs font-normal opacity-80">From: {cartRestaurantName}</span>
             </div>
-            <span>${cartTotal.toFixed(2)}</span>
-          </Link>
-        </div>
-      )}
+          ) : (
+            <span>Cart is empty</span>
+          )}
+          <span>{cartCount > 0 ? `$${cartTotal.toFixed(2)}` : '$0.00'}</span>
+        </Link>
+      </div>
     </main>
   )
 }

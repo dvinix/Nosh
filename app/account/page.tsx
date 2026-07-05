@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { AccountClient, type Order } from '@/components/account-client'
 import { redirect } from 'next/navigation'
-import dayjs from 'dayjs' // Let's use standard Date to avoid extra dependencies
+
 
 export const revalidate = 0
 
@@ -17,9 +17,9 @@ function formatDate(dateStr: string) {
 export default async function AccountPage() {
   const supabase = await createClient()
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect('/login')
   }
 
@@ -27,7 +27,7 @@ export default async function AccountPage() {
   const { data: ordersData, error } = await supabase
     .from('orders')
     .select('id, total, status, created_at, items, restaurants(name)')
-    .eq('user_id', session.user.id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
   let orders: Order[] = []
@@ -48,11 +48,11 @@ export default async function AccountPage() {
     })
   }
 
-  const user = {
-    email: session.user.email || '',
-    name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-    initials: (session.user.user_metadata?.full_name || session.user.email || 'U').substring(0, 2).toUpperCase()
+  const userObj = {
+    email: user.email || '',
+    name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+    initials: (user.user_metadata?.full_name || user.email || 'U').substring(0, 2).toUpperCase()
   }
 
-  return <AccountClient orders={orders} user={user} />
+  return <AccountClient orders={orders} user={userObj} />
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Trash2, Plus, Minus } from 'lucide-react'
+import { ArrowLeft, Trash2, Plus, Minus, Flame, Beef, Wheat, Droplets } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -17,8 +17,8 @@ export function CartClient({ restaurant }: { restaurant: any }) {
     setIsCheckingOut(true)
     
     // Get user session
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
       router.push('/login')
       return
     }
@@ -29,7 +29,7 @@ export function CartClient({ restaurant }: { restaurant: any }) {
     const { data, error } = await supabase
       .from('orders')
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         restaurant_id: restaurant.id,
         items: cartItems,
         total: totalWithTax,
@@ -46,6 +46,13 @@ export function CartClient({ restaurant }: { restaurant: any }) {
       setIsCheckingOut(false)
     }
   }
+
+  // Aggregate nutrition across all cart items
+  const totalCalories = cartItems.reduce((sum, ci) => sum + (ci.item.calories ?? 0) * ci.quantity, 0)
+  const totalProtein  = cartItems.reduce((sum, ci) => sum + (ci.item.protein_g ?? 0) * ci.quantity, 0)
+  const totalCarbs    = cartItems.reduce((sum, ci) => sum + (ci.item.carbs_g ?? 0) * ci.quantity, 0)
+  const totalFat      = cartItems.reduce((sum, ci) => sum + (ci.item.fat_g ?? 0) * ci.quantity, 0)
+  const hasNutrition  = cartItems.some(ci => ci.item.calories != null)
 
   return (
     <main className="min-h-screen bg-background">
@@ -98,6 +105,23 @@ export function CartClient({ restaurant }: { restaurant: any }) {
                       <p className="text-sm text-muted-foreground">
                         ${cartItem.item.price.toFixed(2)} each
                       </p>
+                      {/* Compact per-item macros */}
+                      {cartItem.item.calories && (
+                        <div className="mt-1 flex items-center gap-2.5 text-[11px] font-mono text-muted-foreground">
+                          <span className="flex items-center gap-0.5">
+                            <Flame size={10} className="text-orange-400" />
+                            {Math.round(cartItem.item.calories * cartItem.quantity)}
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Beef size={10} className="text-blue-400" />
+                            {(cartItem.item.protein_g! * cartItem.quantity).toFixed(0)}g P
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Wheat size={10} className="text-yellow-400" />
+                            {(cartItem.item.carbs_g! * cartItem.quantity).toFixed(0)}g C
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -136,6 +160,62 @@ export function CartClient({ restaurant }: { restaurant: any }) {
                 ))}
               </div>
             </section>
+
+            {/* Order Nutrition Summary */}
+            {hasNutrition && (
+              <section
+                className="mb-8 rounded-xl overflow-hidden border border-white/10"
+              >
+                <div
+                  className="relative px-5 py-4"
+                  style={{
+                    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%)',
+                  }}
+                >
+                  <div className="relative">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40 mb-3">Order Nutrition Total</p>
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Calories hero */}
+                      <div className="text-center">
+                        <p className="font-mono text-3xl font-black text-white">{Math.round(totalCalories)}</p>
+                        <p className="text-[10px] font-mono text-white/40 uppercase tracking-wide">kcal</p>
+                      </div>
+                      <div className="w-px h-10 bg-white/10" />
+                      <div className="text-center">
+                        <p className="font-mono text-xl font-bold" style={{ color: '#60a5fa' }}>{totalProtein.toFixed(0)}g</p>
+                        <p className="text-[10px] font-mono text-white/40 uppercase tracking-wide">Protein</p>
+                      </div>
+                      <div className="w-px h-10 bg-white/10" />
+                      <div className="text-center">
+                        <p className="font-mono text-xl font-bold" style={{ color: '#fbbf24' }}>{totalCarbs.toFixed(0)}g</p>
+                        <p className="text-[10px] font-mono text-white/40 uppercase tracking-wide">Carbs</p>
+                      </div>
+                      <div className="w-px h-10 bg-white/10" />
+                      <div className="text-center">
+                        <p className="font-mono text-xl font-bold" style={{ color: '#f472b6' }}>{totalFat.toFixed(0)}g</p>
+                        <p className="text-[10px] font-mono text-white/40 uppercase tracking-wide">Fat</p>
+                      </div>
+                    </div>
+                    {/* Daily value bar */}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-[10px] font-mono text-white/30 mb-1">
+                        <span>Daily value</span>
+                        <span>{Math.round((totalCalories / 2000) * 100)}% of 2000 kcal</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${Math.min(100, Math.round((totalCalories / 2000) * 100))}%`,
+                            background: 'linear-gradient(90deg, #d4a574, #e8a87c)',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
 
             <section className="rounded-lg border border-border bg-card p-6 mb-8">
               <h3 className="text-lg font-bold text-foreground mb-4">
